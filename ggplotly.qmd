@@ -1,0 +1,90 @@
+---
+title: "ggplotly geoms"
+author: "Carson Sievert"
+format: dashboard
+---
+
+```{r}
+library(ggplot2)
+library(plotly)
+library(plyr)
+
+# Make some noisily increasing data
+set.seed(955)
+dat <- data.frame(cond = rep(c("A", "B"), each=10),
+                  xvar = 1:20 + rnorm(20,sd=3),
+                  yvar = 1:20 + rnorm(20,sd=3))
+```
+
+# geom_point
+
+## Row {height="60%"}
+
+```{r}
+#| title: geom_smooth with Loess Smoothed Fit
+p <- ggplot(dat, aes(x=xvar, y=yvar)) +
+            geom_point(shape=1) +    # Use hollow circles
+            geom_smooth()            # Add a loess smoothed fit curve with confidence region
+ggplotly(p)
+```
+
+
+## Row
+
+```{r}
+#| title: Scatter Chart with geom_point
+p <- ggplot(dat, aes(x=xvar, y=yvar)) +
+            geom_point(shape=1)      # Use hollow circles
+ggplotly(p)
+```
+
+```{r}
+#| title: geom_smooth Linear Regression
+p <- ggplot(dat, aes(x=xvar, y=yvar)) +
+            geom_point(shape=1) +    # Use hollow circles
+            geom_smooth(method=lm)   # Add linear regression line
+ggplotly(p)
+```
+
+
+# geom_density
+
+```{r}
+#| title: Density and Scatterplot Overlay Using geom_density
+df <- data.frame(x <- rchisq(1000, 10, 10),
+                 y <- rnorm(1000))
+
+p <- ggplot(df, aes(x, y)) + 
+     geom_point(alpha = 0.5) + 
+     geom_density_2d() + 
+     theme(panel.background = element_rect(fill = '#ffffff'))
+
+ggplotly(p)
+```
+
+
+```{r}
+#| title: Add Conditional Density Curves to Plot
+dim1 <- c(rnorm(100, mean=1), rnorm(100, mean=4))
+dim2 <- rnorm(200, mean=1)
+cat <- factor(c(rep("a", 100), rep("b", 100)))
+mydf <- data.frame(cbind(dim2, dim1, cat))
+p <- ggplot(data=mydf, aes(x=dim1, y=dim2, colour=as.factor(cat))) +
+  geom_point() +
+  stat_density(aes(x=dim1, y=(-2+(..scaled..))),
+               position="identity", geom="line")
+
+# extract the x range to make the new densities align with y-axis
+xrange <- ggplot_build(p)$layout$panel_scales_x[[1]]$range$range
+
+## Get densities of dim2
+ds <- do.call(rbind, lapply(unique(mydf$cat), function(lev) {
+    dens <- with(mydf, density(dim2[cat==lev]))
+    data.frame(x=dens$y+xrange[1], y=dens$x, cat=lev)
+}))
+
+p <- p + geom_path(data=ds, aes(x=x, y=y, color=factor(cat)))
+
+ggplotly(p)
+```
+
