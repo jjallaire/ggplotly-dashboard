@@ -1,7 +1,9 @@
 ---
 title: "ggplotly geoms"
 author: "Carson Sievert"
-format: dashboard
+format: 
+  dashboard:
+    theme: minty
 ---
 
 ```{r}
@@ -48,7 +50,7 @@ ggplotly(p)
 
 # geom_density {orientation="columns"}
 
-## Column (width="60%")
+## Column {width="60%"}
 
 ```{r}
 #| title: Density and Scatterplot Overlay Using geom_density
